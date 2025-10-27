@@ -44,3 +44,31 @@ server:
   # -------------------------
   ingressGrpc:
     enabled: false
+
+  # Expose metrics
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Expose Prometheus metrics for the ArgoCD components
+controller:
+  metrics:
+    # This creates the Service and /metrics endpoint
+    enabled: true
+
+    # This creates the ServiceMonitor resource for Prometheus to find
+    serviceMonitor:
+      enabled: true
+
+repoServer:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+applicationSet:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true

@@ -35,7 +35,7 @@ prometheus:
   # Ingress for Prometheus
   ingress:
     enabled: true
-    ingressClassName: private
+    ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -67,34 +67,10 @@ grafana:
     dashboards:
       enabled: true
 
-  # defines a provider to load dashboards
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: imported
-          orgId: 1
-          folder: "ArgoCD"
-          type: file
-          disableDeletion: false
-          editable: true
-          allowUiUpdates: true
-          options:
-            path: /var/lib/grafana/dashboards/imported
-
-  # retrieves dashboard by ID from grafana.com
-  dashboards:
-    imported:             # must match the provider name
-      cnpg:
-        gnetId: 14584     # ArgoCD dashboard ID
-        revision: 1
-        datasource: Prometheus
-
-
   # Ingress for Grafana
   ingress:
     enabled: true
-    ingressClassName: public
+    ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -120,7 +96,7 @@ alertmanager:
   # Ingress for Alertmanager
   ingress:
     enabled: true
-    ingressClassName: private
+    ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
