@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  # cascade delete when the Application is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring # Namespace to deploy the application to
+
+  sources:
+      # Source repository containing the Helm chart to deploy
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 77.6.2
+      helm:
+        valueFiles:
+          - $values/infra/monitoring/values.yaml
+    - repoURL: https://github.com/israelsz/argocd-gitops.git
+      targetRevision: HEAD # Track the repo's default branch (follows if it changes)
+      ref: values
+  
+  syncPolicy:
+    automated:
+      prune: true # Specify that resources should be pruned during auto-sync
+      selfHeal: true # Specify if out-of-sync resources should be automatically synced
+    syncOptions:
+      - CreateNamespace=true # Create the destination namespace if it doesn't exist
+      - ServerSideApply=true # Use server-side apply for resource updates

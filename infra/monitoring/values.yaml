@@ -1,0 +1,137 @@
+# --- Global minimal tuning
+fullnameOverride: monitoring
+
+# --- Default rules settings
+defaultRules:
+  create: true
+
+# --- Prometheus settings
+prometheus:
+  enabled: true
+
+  prometheusSpec:
+    retention: 5d
+    # Use ~80–85% of the PVC size here to leave headroom for WAL, head blocks,
+    # compaction temp files, and filesystem overhead. Prometheus can briefly exceed
+    # retentionSize on disk, so matching it to the PVC risks filling the volume.
+    # https://prometheus.io/docs/prometheus/latest/storage/#right-sizing-retention-size
+    retentionSize: 3GiB 
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+          
+
+    # Open selectors to discover PodMonitor/ServiceMonitor/Rules across all namespaces
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+
+  # Ingress for Prometheus
+  ingress:
+    enabled: true
+    ingressClassName: private
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    hosts:
+      - prometheus.macrohard.software
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - secretName: prometheus-tls
+        hosts:
+          - prometheus.macrohard.software
+
+
+
+# --- Grafana settings
+grafana:
+  enabled: true
+
+  # Grafana dashboard login credentials
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
+
+  # Enable dashboard sidecar so dashboards from ConfigMaps can be auto-loaded if we add any later
+  sidecar:
+    dashboards:
+      enabled: true
+
+  # defines a provider to load dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: imported
+          orgId: 1
+          folder: "ArgoCD"
+          type: file
+          disableDeletion: false
+          editable: true
+          allowUiUpdates: true
+          options:
+            path: /var/lib/grafana/dashboards/imported
+
+  # retrieves dashboard by ID from grafana.com
+  dashboards:
+    imported:             # must match the provider name
+      cnpg:
+        gnetId: 14584     # ArgoCD dashboard ID
+        revision: 1
+        datasource: Prometheus
+
+
+  # Ingress for Grafana
+  ingress:
+    enabled: true
+    ingressClassName: public
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    hosts:
+      - grafana.macrohard.software
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.macrohard.software
+
+
+# --- Alertmanager settings
+
+alertmanager:
+  enabled: true
+
+  alertmanagerSpec:
+    replicas: 1
+    
+  # Ingress for Alertmanager
+  ingress:
+    enabled: true
+    ingressClassName: private
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    hosts:
+      - alertmanager.macrohard.software
+    paths:
+      - /
+    pathType: Prefix
+    tls:
+      - secretName: alertmanager-tls
+        hosts:
+          - alertmanager.macrohard.software
+
