@@ -17,7 +17,7 @@ spec:
       # Source repository containing the Helm chart to deploy
     - repoURL: https://israelsz.github.io/astro-blog-helm
       chart: astro-blog-helm
-      targetRevision: 0.1.1
+      targetRevision: 0.1.2
       helm: 
         valueFiles:
           - $values/dev-apps/astro-blog/values.yaml
