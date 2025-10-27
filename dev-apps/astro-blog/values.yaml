@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/israelsz/astro-blog
-  tag: "966b8e7-astro"
+  tag: "a0ce70c-astro"
 
 ingress:
   enabled: true
