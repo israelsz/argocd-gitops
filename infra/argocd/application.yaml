@@ -1,0 +1,35 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  # cascade delete when the Application is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd # Namespace to deploy the application to
+
+  sources:
+      # Source repository containing the Helm chart to deploy
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 8.3.0
+      helm: 
+        valueFiles:
+          - $values/infra/argocd/values.yaml 
+    - repoURL: https://github.com/israelsz/argocd-gitops.git
+      targetRevision: HEAD # Track the repo's default branch (follows if it changes)
+      ref: values
+  
+  syncPolicy:
+    automated:
+      prune: true # Specify that resources should be pruned during auto-sync
+      selfHeal: true # Specify if out-of-sync resources should be automatically synced
+    syncOptions:
+      - CreateNamespace=true # Create the destination namespace if it doesn't exist
+      - PruneLast=true # Perform pruning at the end of the sync to avoid deleting before replacements are ready
+      - ApplyOutOfSyncOnly=true # Only apply resources that are out-of-sync (skip already in-sync objects)

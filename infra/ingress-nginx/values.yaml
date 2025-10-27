@@ -1,0 +1,13 @@
+fullnameOverride: ingress-nginx
+
+controller:
+  service:
+    type: NodePort
+    nodePorts:
+      http:  32579
+      https: 31258
+
+  admissionWebhooks:
+    enabled: true
+    patch:
+      enabled: true

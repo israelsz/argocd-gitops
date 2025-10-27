@@ -1,0 +1,46 @@
+crds:
+  install: true
+
+#  ArgoCD config
+configs:
+  cm:
+    # Public URL used by links/callbacks in the UI
+    url: https://argocd.macrohard.software
+  params:
+    # Run argocd-server without internal TLS; TLS terminates at the ingress
+    server.insecure: "true"
+
+server:
+  # -------------------------
+  # UI (HTTP/HTTPS) Ingress
+  # -------------------------
+  ingress:
+    enabled: true
+    # Your NGINX Ingress class
+    ingressClassName: nginx
+
+    # Annotations for edge TLS termination with cert-manager
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      # Talk HTTP to the backend (since server.insecure=true)
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+
+    # Primary UI hostname
+    hostname: argocd.macrohard.software
+
+    # Route config (root path)
+    path: /
+    pathType: Prefix
+
+    # TLS configuration for the UI Ingress.
+    extraTls:
+      - hosts:
+          - argocd.macrohard.software
+        secretName: argocd-http-tls
+
+  # -------------------------
+  # CLI (gRPC) Ingress
+  # -------------------------
+  ingressGrpc:
+    enabled: false

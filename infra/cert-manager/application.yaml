@@ -1,0 +1,41 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  # cascade delete when the Application is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager # Namespace to deploy the application to
+
+  sources:
+    - chart: cert-manager
+      repoURL: https://charts.jetstack.io
+      targetRevision: v1.17.2
+      helm:
+        valueFiles:
+          - $values/infra/cert-manager/values.yaml
+          
+    - repoURL: https://github.com/israelsz/argocd-gitops.git
+      targetRevision: HEAD
+      ref: values
+    
+    # Add extra resources to be managed by this Application - ClusterIssuers
+    - repoURL: https://github.com/israelsz/argocd-gitops.git
+      targetRevision: HEAD
+      path: infra/cert-manager/cluster-issuers
+      directory:
+        recurse: true
+
+  syncPolicy:
+    automated:
+      prune: true # Specify that resources should be pruned during auto-sync
+      selfHeal: true # Specify if out-of-sync resources should be automatically synced
+    syncOptions:
+      - CreateNamespace=true # Create the destination namespace if it doesn't exist
+      - PruneLast=true # Perform pruning at the end of the sync to avoid deleting before replacements are ready
