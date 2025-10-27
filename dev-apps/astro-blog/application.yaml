@@ -1,0 +1,33 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: astro-blog
+  namespace: argocd
+  # cascade delete when the Application is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: astroblog # Namespace to deploy the application to
+
+  sources:
+      # Source repository containing the Helm chart to deploy
+    - repoURL: https://israelsz.github.io/astro-blog-helm
+      chart: astro-blog-helm
+      targetRevision: 0.1.1
+      helm: 
+        valueFiles:
+          - $values/dev-apps/astro-blog/values.yaml
+    - repoURL: https://github.com/israelsz/argocd-gitops.git
+      targetRevision: HEAD # Track the repo's default branch (follows if it changes)
+      ref: values
+  
+  syncPolicy:
+    automated:
+      prune: true # Specify that resources should be pruned during auto-sync
+      selfHeal: true # Specify if out-of-sync resources should be automatically synced
+    syncOptions:
+      - CreateNamespace=true # Create the destination namespace if it doesn't exist

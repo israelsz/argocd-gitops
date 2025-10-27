@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dev-apps-bootstrap
+  namespace: argocd
+  # cascade delete when the Application is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  # Destination cluster and namespace to deploy the application to
+  destination:
+    namespace: argocd
+    name: in-cluster
+
+  source:
+    repoURL: https://github.com/israelsz/argocd-gitops.git
+    targetRevision: HEAD
+    path: dev-apps
+    directory:
+      recurse: true
+      include: '*/application.yaml'
+      
+  syncPolicy:
+    automated: # Enable auto-sync
+      prune: true # Specify that resources should be pruned during auto-sync
+      selfHeal: true # Specify if out-of-sync resources should be automatically synced
+    syncOptions:
+      - CreateNamespace=true # Create the destination namespace if it doesn't exist
