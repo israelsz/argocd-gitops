@@ -22,7 +22,7 @@ spec:
         valueFiles:
           - $values/dev-apps/astro-blog/values.yaml
     - repoURL: https://github.com/israelsz/argocd-gitops.git
-      targetRevision: HEAD # Track the repo's default branch (follows if it changes)
+      targetRevision: 0.1.2
       ref: values
   
   syncPolicy:
